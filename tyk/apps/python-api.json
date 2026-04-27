@@ -1,0 +1,25 @@
+{
+    "name": "Python Microservice",
+    "api_id": "py-ms-02",
+    "org_id": "default",
+    "definition": {
+        "location": "header",
+        "key": "x-api-version"
+    },
+    "use_keyless": true,
+    "active": true,
+    "proxy": {
+        "listen_path": "/python-service/",
+        "target_url": "http://backend-python:5000/",
+        "strip_listen_path": true
+    },
+    "version_data": {
+        "not_versioned": true,
+        "versions": {
+            "Default": {
+                "name": "Default",
+                "use_extended_paths": true
+            }
+        }
+    }
+}

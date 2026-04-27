@@ -1,0 +1,25 @@
+{
+    "name": "Spring Boot Microservice ms-client",
+    "api_id": "pb-ms-01",
+    "org_id": "default",
+    "definition": {
+        "location": "header",
+        "key": "x-api-version"
+    },
+    "use_keyless": true,
+    "active": true,
+    "proxy": {
+        "listen_path": "/spring-service-client/",
+        "target_url": "http://ms-client:8001/",
+        "strip_listen_path": true
+    },
+    "version_data": {
+        "not_versioned": true,
+        "versions": {
+            "Default": {
+                "name": "Default",
+                "use_extended_paths": true
+            }
+        }
+    }
+}

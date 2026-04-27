@@ -1,0 +1,25 @@
+{
+    "name": "Go Microservice",
+    "api_id": "go-ms-01",
+    "org_id": "default",
+    "definition": {
+        "location": "header",
+        "key": "x-api-version"
+    },
+    "use_keyless": true,
+    "active": true,
+    "proxy": {
+        "listen_path": "/go-service/",
+        "target_url": "http://backend-go:8081/",
+        "strip_listen_path": true
+    },
+    "version_data": {
+        "not_versioned": true,
+        "versions": {
+            "Default": {
+                "name": "Default",
+                "use_extended_paths": true
+            }
+        }
+    }
+}

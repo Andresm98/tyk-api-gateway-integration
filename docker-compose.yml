@@ -1,0 +1,87 @@
+services:
+  tyk-redis:
+    image: redis:alpine
+    networks:
+      default:
+        aliases:
+          - redis
+  backend-go:
+    build: ./services/backend-go
+    # ports:
+    #   - "8081:8081"
+
+  backend-python:
+    build: ./services/backend-python
+    # ports:
+    #   - "5000:5000"
+ 
+  ms-client:
+    build: 
+      context: ./services/ms-client
+      dockerfile: Dockerfile
+    # ports:
+    #   - "8001:8001"
+
+  ms-account:
+    build: 
+      context: ./services/ms-account
+      dockerfile: Dockerfile
+    # ports:
+    #   - "8000:8000"
+    depends_on:
+      - ms-client
+
+  frontend-next:
+    build: ./services/frontend-next
+    ports:
+      - "3000:3000"
+
+  tyk-gateway:
+    image: tykio/tyk-gateway:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./tyk/tyk.conf:/opt/tyk-gateway/tyk.conf
+      - ./tyk/apps:/opt/tyk-gateway/apps
+    environment:
+      - TYK_GW_SECRET=352d54443b354d72b2d95274
+    depends_on:
+      - tyk-redis
+      - tyk-mongo
+
+  tyk-pump:
+    image: tykio/tyk-pump-docker-pub:latest
+    environment:
+      - TYK_PMP_ANALYTICSSTORAGE_TYPE=redis
+      - TYK_PMP_ANALYTICSSTORAGE_HOST=tyk-redis
+      - TYK_PMP_ANALYTICSSTORAGE_PORT=6379
+      - TYK_PMP_PUMPS_MONGO_TYPE=mongo
+      - TYK_PMP_PUMPS_MONGO_META_COLLECTION_NAME=tyk_analytics
+      - TYK_PMP_PUMPS_MONGO_MONGOURL=mongodb://tyk-mongo:27017/tyk_analytics
+    depends_on:
+      - tyk-redis
+      - tyk-mongo
+
+  tyk-dashboard:
+    image: tykio/tyk-dashboard:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - TYK_DB_ADDR=tyk-gateway
+      - TYK_DB_SECRET=352d54443b354d72b2d95274
+      - TYK_DB_MONGOURL=mongodb://tyk-mongo:27017/tyk_analytics
+      - TYK_IB_SESSION_SECRET=algo-muy-secreto-aqui
+      - TYK_DB_LICENSEKEY=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGxvd2VkX25vZGVzIjoiMjk4OTg5ZTgtOWVjYS00ZTljLTUzMzQtNTQ0MzE3ODU3MjhlLDA4OGU4Mjg2LTMwNmQtNGY1My02NjhiLWJhNjhjYWZlNzNiNiw1MjU1NDg4Ny03N2RiLTRjNTYtNjNiZi0wZjdkOTRhMmNjNDcsNDc2Yjg1MDAtNjc0Mi00MGEzLTRkNGEtYWZkYTZhNzhlN2JmLGJiMTUwZTg0LTNiY2EtNDBjZi00YTRlLTU5ODJlYmQwMjk2NiIsImV4cCI6MTc3ODU0Mzk5OSwiaGlkIjoiMjE4MDc5MTc4NTY5IiwiaWF0IjoxNzc3MjYyNzUzLCJsaWNlbnNlX3R5cGUiOiJ0cmlhbCIsIm93bmVyIjoiNjllZWUwYTEzOTRhZDlkMDRhZjhhYzFkIiwic2NvcGUiOiJ0cmFjayxyYmFjLG11bHRpX3RlYW0sdWRnLGdyYXBoLGZlZGVyYXRpb24iLCJ2IjoiMiJ9.Bekh1eoYgkhsHSE3xWokVBC53y1INyFPhfI0M0PtksSRRzEMrKcLNw5xIrTYT3sfOU-DBC_U6hs__yOxGRHlV0xMw-zbQNfte_Zc-ZOyYBNC5T7YhHBjSWf8ldJalNu3LD7tnKtgMGsP5NcruYzS45mm1XxdKp45EDaApq3enYs6OJxHujETfCQbEEoe2QKklxyYitVIUSSW2BfEWE4mpNz5r84TvCxWEEfE7h9k-GgmD_3hsxlEyoIuZJvNooPjnfGVRymDzED4jiD5eXM2N9gxC0ze9zRU3jDTmnyjXvwIyJyVIpRShJihzuP6WBmIiVSFgwatvhYqJ1wzkCtvSg
+    depends_on:
+      - tyk-mongo
+    restart: always
+
+  tyk-mongo:
+    image: mongo:4.4
+    container_name: tyk-mongo
+    networks:
+      default:
+        aliases:
+          - mongo
+    ports:
+      - "27017:27017"
